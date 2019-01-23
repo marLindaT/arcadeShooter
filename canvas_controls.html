@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> Technicals Aspects of Extraction</title>
+
+	</head>
+<body>
+
+<canvas id='canvas'>canvas not supported</canvas>
+<br>
+
+<input id = "score-p" type = 'text'>
+	</p>
+
+<script>
+
+// game management propertiees
+
+let SCORE = 0;
+let scoreP = document.querySelector('#score-p');
+
+//game mechnanic properties
+let speedMultiplier = 1.0;
+let DX = 1*speedMultiplier;
+let DY = 2;
+let level = 1;
+let numEnemiesInitial = 3*level;
+
+//canvas properties
+const HEIGHT = 300;
+const WIDTH = 300;
+const cvs =  document.querySelector("#canvas");
+cvs.style.backgroundColor = "black";
+cvs.width = HEIGHT;
+cvs.height = WIDTH;
+
+const ctx = cvs.getContext('2d');
+
+function randomNum(min, max){
+	return Math.floor((Math.random()*(max-min))+min);
+}
+
+function createEnemies(num){
+	for(let i = 0; i<=num;i++){
+		let x = new Enemy();
+		enemies.arr.push(x);
+	}
+}
+
+function Enemy(){
+	this.x = randomNum(0,WIDTH);
+	this.y = randomNum(-30,5);
+	this.width = 10;
+	this.height = 10;
+	this.color = 'red';
+}
+
+const enemies = {
+	arr: [],
+	move: function(){
+		this.arr.forEach(function(obj){
+			if(obj.x>=obj.width && obj.x<=WIDTH){obj.x += randomNum(-DX,DX+1);}else if (obj.x<=(obj.width)){obj.x+= 2*DX;}else if (obj.width>=WIDTH){obj.x-=2*DX;}
+			obj.y += randomNum(0, DY);
+		})
+	},
+	draw: function(){
+		//filter enemies array to remove elements out of screen
+		let newArr = this.arr.filter(function(obj){if(obj.y<HEIGHT){
+			return obj;
+		}})
+	//SCORE = this.arr.length - newArr.length;
+		//copy filtered array to enemies array
+		this.arr = newArr;
+		//draw each enemy in the revised array
+		this.arr.forEach(function(obj){
+
+			draw(obj);
+		})
+	},
+};
+
+function Player (width,height,color="blue"){
+	this.x = WIDTH/2;
+	this.y = HEIGHT * 0.9;
+	this.width = width;
+	this.height = height;
+	this.color = color;
+
+	}
+
+
+let player1 = new Player(20,20);
+
+function draw(obj){
+	ctx.beginPath();
+	ctx.lineWidth = '5';
+	ctx.strokeStyle = obj.color;
+	ctx.fillStyle = obj.color;
+	ctx.rect(obj.x, obj.y, obj.width, obj.height);
+	ctx.fill();
+}
+
+//enter player1 and enemies
+function collisionDetection(plyrObj, enmyObj){
+	enmyObj.arr.forEach(function(obj){
+		if(obj.x >= plyrObj.x && obj.x <= (plyrObj.x + plyrObj.width)){
+			if(obj.y>=plyrObj.y){
+				console.log("collision detected");
+			}
+		}
+	})
+}
+
+
+function keyLogger(e) {
+	//console.log(e.keyCode);
+ 
+  if(e.keyCode == 37){player1.x-=3;}
+  if(e.keyCode == 39){player1.x +=3;}
+}
+
+function clearCanvas(){
+	ctx.clearRect(0,0,WIDTH, HEIGHT);
+}
+
+//testing function only
+
+function testMovePlayer(obj){
+	obj.x-=DX;
+	if(obj.x == WIDTH-obj.width || obj.x == 0){
+		DX*=-1;
+	}
+
+}
+//initialization 
+createEnemies(numEnemiesInitial);//3 enemies to begin
+setInterval('createEnemies(2)', 3000);
+console.log("initial enemies= "+enemies.arr);
+
+
+function mainLoop(){
+
+	clearCanvas();
+//	testMovePlayer(player1);
+	draw(player1);
+
+	enemies.draw();
+	enemies.move();
+
+	collisionDetection(player1, enemies);
+
+scoreP.value = SCORE;
+
+
+	window.requestAnimationFrame(mainLoop);
+}
+
+
+document.addEventListener('keydown', keyLogger);
+
+window.requestAnimationFrame(mainLoop);
+</script>
+
+</body>
+</html>
