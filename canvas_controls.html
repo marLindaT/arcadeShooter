@@ -21,10 +21,14 @@ let scoreP = document.querySelector('#score-p');
 
 //game mechnanic properties
 let speedMultiplier = 1.0;
+let playerMovement = 3.0;
 let DX = 1*speedMultiplier;
 let DY = 2;
 let level = 1;
 let numEnemiesInitial = 3*level;
+let shotWidth = 2;
+let shotLength = 2;
+let laser_speed = 10;
 
 //canvas properties
 const HEIGHT = 300;
@@ -68,6 +72,7 @@ const enemies = {
 		let newArr = this.arr.filter(function(obj){if(obj.y<HEIGHT){
 			return obj;
 		}})
+		SCORE +=100*(this.arr.length - newArr.length); 
 	//SCORE = this.arr.length - newArr.length;
 		//copy filtered array to enemies array
 		this.arr = newArr;
@@ -85,8 +90,25 @@ function Player (width,height,color="blue"){
 	this.width = width;
 	this.height = height;
 	this.color = color;
+	this.holster = [];
 
+	this.shootLaser = function(){
+		this.holster.push([this.x,this.y]);
 	}
+//left off here working on building a laser protocol
+
+	this.drawLasers = function(){
+		for(let i=0; i<this.hoslter.length;i++){
+			ctx.beginPath();
+			ctx.moveTo(this.holster[i][0], this.holsterp[i][1]);
+			ctx.lineTo();
+			ctx.stroke();
+		}
+	}
+
+}
+
+	
 
 
 let player1 = new Player(20,20);
@@ -100,25 +122,46 @@ function draw(obj){
 	ctx.fill();
 }
 
+
+
+
+
 //enter player1 and enemies
 function collisionDetection(plyrObj, enmyObj){
+	//improve by having function take any two objects as inputs and detecting collision
 	enmyObj.arr.forEach(function(obj){
 		if(obj.x >= plyrObj.x && obj.x <= (plyrObj.x + plyrObj.width)){
 			if(obj.y>=plyrObj.y){
+				//adjust here later to add end game/remove life action?
 				console.log("collision detected");
+				//every collision removes 100 points from score
+				SCORE-=100;
 			}
 		}
 	})
+	// code to remove enemies that have collided
+		for (let j =0; j< enmyObj.arr.length; j++){
+			if(enmyObj.arr[j].x >= plyrObj.x && enmyObj.arr[j].x <= (plyrObj.x + plyrObj.width)){
+				if(enmyObj.arr[j].y>=plyrObj.y){
+					enmyObj.arr.splice(j, 1);
+					console.log(`enemy arr len= ${enmyObj.arr.length}`);
+
+				}
+		
+			}
+		}
 }
 
-
+//detect key code from L/R arrow keys and adjust player coords
 function keyLogger(e) {
 	//console.log(e.keyCode);
  
-  if(e.keyCode == 37){player1.x-=3;}
-  if(e.keyCode == 39){player1.x +=3;}
+  if(e.keyCode == 37){player1.x-=playerMovement;}
+  if(e.keyCode == 39){player1.x += playerMovement;}
+  if(e.keyCode == 32){shootLaser()};
 }
 
+//clear canvas before each animation frame
 function clearCanvas(){
 	ctx.clearRect(0,0,WIDTH, HEIGHT);
 }
