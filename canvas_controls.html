@@ -26,9 +26,9 @@ let DX = 1*speedMultiplier;
 let DY = 2;
 let level = 1;
 let numEnemiesInitial = 3*level;
-let shotWidth = 2;
-let shotLength = 2;
-let laser_speed = 10;
+let laserWidth = 2;
+let laserLength = 5;
+let laser_speed = 1;
 
 //canvas properties
 const HEIGHT = 300;
@@ -92,25 +92,44 @@ function Player (width,height,color="blue"){
 	this.color = color;
 	this.holster = [];
 
+//fn to add a new laser to array of lasers called the holster
+//update this array and repaint every animation frame
 	this.shootLaser = function(){
-		this.holster.push([this.x,this.y]);
+		this.holster.push([(this.x+this.width/2),this.y]);
 	}
-//left off here working on building a laser protocol
 
+//cycle through the array of lasers and paint each as a rect
 	this.drawLasers = function(){
-		for(let i=0; i<this.hoslter.length;i++){
-			ctx.beginPath();
-			ctx.moveTo(this.holster[i][0], this.holsterp[i][1]);
-			ctx.lineTo();
-			ctx.stroke();
+		if(this.holster.length !=0){
+		for(let i=0; i<this.holster.length;i++){
+			ctx.beginPath()
+			ctx.fillStyle = "green";
+			ctx.fillRect(this.holster[i][0], this.holster[i][1], laserWidth, laserLength);
+			ctx.closePath();
+		}
+		}
+	}
+
+//first check that the holster is not empty
+//cycle thru holster and decrement laser y values 
+//splice elements from array that are about to leave the screen 
+	this.moveLasers = function(){
+		if(this.holster.length !=0){
+			//move the laser by incrementing 
+			for(let i = 0; i<this.holster.length; i++){
+				this.holster[i][1]-= laser_speed;
+			}
+			for(let j = 0; j<this.holster.length; j++){
+				if(this.holster[j][1]<2){
+					this.holster.splice(j,1);
+				}
+			}
 		}
 	}
 
 }
 
 	
-
-
 let player1 = new Player(20,20);
 
 function draw(obj){
@@ -133,9 +152,9 @@ function collisionDetection(plyrObj, enmyObj){
 		if(obj.x >= plyrObj.x && obj.x <= (plyrObj.x + plyrObj.width)){
 			if(obj.y>=plyrObj.y){
 				//adjust here later to add end game/remove life action?
-				console.log("collision detected");
+				//console.log("collision detected");
 				//every collision removes 100 points from score
-				SCORE-=100;
+				
 			}
 		}
 	})
@@ -144,7 +163,8 @@ function collisionDetection(plyrObj, enmyObj){
 			if(enmyObj.arr[j].x >= plyrObj.x && enmyObj.arr[j].x <= (plyrObj.x + plyrObj.width)){
 				if(enmyObj.arr[j].y>=plyrObj.y){
 					enmyObj.arr.splice(j, 1);
-					console.log(`enemy arr len= ${enmyObj.arr.length}`);
+					SCORE-=100;
+					//console.log(`enemy arr len= ${enmyObj.arr.length}`);
 
 				}
 		
@@ -158,7 +178,7 @@ function keyLogger(e) {
  
   if(e.keyCode == 37){player1.x-=playerMovement;}
   if(e.keyCode == 39){player1.x += playerMovement;}
-  if(e.keyCode == 32){shootLaser()};
+  if(e.keyCode == 38){player1.shootLaser()};
 }
 
 //clear canvas before each animation frame
@@ -167,14 +187,13 @@ function clearCanvas(){
 }
 
 //testing function only
-
 function testMovePlayer(obj){
 	obj.x-=DX;
 	if(obj.x == WIDTH-obj.width || obj.x == 0){
 		DX*=-1;
 	}
-
 }
+
 //initialization 
 createEnemies(numEnemiesInitial);//3 enemies to begin
 setInterval('createEnemies(2)', 3000);
@@ -184,15 +203,19 @@ console.log("initial enemies= "+enemies.arr);
 function mainLoop(){
 
 	clearCanvas();
+
 //	testMovePlayer(player1);
+	
 	draw(player1);
+	player1.drawLasers();
+	player1.moveLasers();
 
 	enemies.draw();
 	enemies.move();
 
 	collisionDetection(player1, enemies);
 
-scoreP.value = SCORE;
+	scoreP.value = SCORE;
 
 
 	window.requestAnimationFrame(mainLoop);
