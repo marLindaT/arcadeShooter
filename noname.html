@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> Technicals Aspects of Extraction</title>
+
+	</head>
+	
+<style type="text/css">
+#start-btn{
+	width:50vw;
+	height:10vh;
+	margin: 5px;
+	padding: 5px;
+	background-color: green;
+	color:white;
+	border: none;
+	border-radius: 5px;
+}
+
+</style>
+	
+	
+<body>
+
+<button id="start-btn">START GAME
+</button>
+
+<canvas id='canvas'>canvas not supported</canvas>
+<br>
+
+<input id = "score-p" type = 'text'>
+	</p>
+
+<script>
+
+// game management propertiees
+
+let SCORE = 0;
+let scoreP = document.querySelector('#score-p');
+const startBtn = document.querySelector("#start-btn");
+
+//game mechnanic properties
+let PLAY = true;
+let speedMultiplier = 1.0;
+let playerMovement = 3.0;
+let DX = 1*speedMultiplier;
+let DY = 2;
+let level = 1;
+let numEnemiesInitial = 3*level;
+let laserWidth = 2;
+let laserLength = 5;
+let laser_speed = 1;
+
+//canvas properties
+const HEIGHT = 300;
+const WIDTH = 300;
+const cvs =  document.querySelector("#canvas");
+cvs.style.backgroundColor = "black";
+cvs.width = HEIGHT;
+cvs.height = WIDTH;
+const ctx = cvs.getContext('2d');
+
+function randomNum(min, max){
+	return Math.floor((Math.random()*(max-min))+min);
+}
+
+function createEnemies(num){
+	for(let i = 0; i<=num;i++){
+		let x = new Enemy();
+		enemies.arr.push(x);
+	}
+}
+
+function Enemy(){
+	this.x = randomNum(0,WIDTH);
+	this.y = randomNum(-30,5);
+	this.width = 10;
+	this.height = 10;
+	this.color = 'red';
+}
+
+const enemies = {
+	arr: [],
+	move: function(){
+		this.arr.forEach(function(obj){
+			if(obj.x>=obj.width && obj.x<=WIDTH){obj.x += randomNum(-DX,DX+1);}else if (obj.x<=(obj.width)){obj.x+= 2*DX;}else if (obj.width>=WIDTH){obj.x-=2*DX;}
+			obj.y += randomNum(0, DY);
+		})
+	},
+	draw: function(){
+		//filter enemies array to remove elements out of screen
+		let newArr = this.arr.filter(function(obj){if(obj.y<HEIGHT){
+			return obj;
+		}})
+		SCORE +=100*(this.arr.length - newArr.length); 
+	//SCORE = this.arr.length - newArr.length;
+		//copy filtered array to enemies array
+		this.arr = newArr;
+		//draw each enemy in the revised array
+		this.arr.forEach(function(obj){
+
+			draw(obj);
+		})
+	},
+};
+
+function Player (width,height,color="blue"){
+	this.x = WIDTH/2;
+	this.y = HEIGHT * 0.9;
+	this.width = width;
+	this.height = height;
+	this.color = color;
+	this.holster = [];
+
+//fn to add a new laser to array of lasers called the holster
+//update this array and repaint every animation frame
+	this.shootLaser = function(){
+		this.holster.push([(this.x+this.width/2),this.y]);
+	}
+
+//cycle through the array of lasers and paint each as a rect
+	this.drawLasers = function(){
+		if(this.holster.length !=0){
+		for(let i=0; i<this.holster.length;i++){
+			ctx.beginPath()
+			ctx.fillStyle = "green";
+			ctx.fillRect(this.holster[i][0], this.holster[i][1], laserWidth, laserLength);
+			ctx.closePath();
+		}
+		}
+	}
+
+//first check that the holster is not empty
+//cycle thru holster and decrement laser y values 
+//splice elements from array that are about to leave the screen 
+	this.moveLasers = function(){
+		if(this.holster.length !=0){
+			//move the laser by incrementing 
+			for(let i = 0; i<this.holster.length; i++){
+				this.holster[i][1]-= laser_speed;
+			}
+			for(let j = 0; j<this.holster.length; j++){
+				if(this.holster[j][1]<2){
+					this.holster.splice(j,1);
+				}
+			}
+		}
+	}
+
+}
+
+	
+let player1 = new Player(20,20);
+
+function draw(obj){
+	ctx.beginPath();
+	ctx.lineWidth = '5';
+	ctx.strokeStyle = obj.color;
+	ctx.fillStyle = obj.color;
+	ctx.rect(obj.x, obj.y, obj.width, obj.height);
+	ctx.fill();
+}
+
+
+
+
+
+//enter player1 and enemies
+function collisionDetection(plyrObj, enmyObj){
+	//improve by having function take any two objects as inputs and detecting collision
+	enmyObj.arr.forEach(function(obj){
+		if(obj.x >= plyrObj.x && obj.x <= (plyrObj.x + plyrObj.width)){
+			if(obj.y>=plyrObj.y){
+				//adjust here later to add end game/remove life action?
+				//console.log("collision detected");
+				//every collision removes 100 points from score
+				
+			}
+		}
+	})
+	// code to remove enemies that have collided
+		for (let j =0; j< enmyObj.arr.length; j++){
+			if(enmyObj.arr[j].x >= plyrObj.x && enmyObj.arr[j].x <= (plyrObj.x + plyrObj.width)){
+				if(enmyObj.arr[j].y>=plyrObj.y){
+					enmyObj.arr.splice(j, 1);
+					SCORE-=100;
+					//console.log(`enemy arr len= ${enmyObj.arr.length}`);
+
+				}
+		
+			}
+		}
+}
+
+//left working here on laser collision
+function laserCollision(){
+	if(player1.holster.length !=0){
+		for(let i=0;i<enemies.arr.length; i++){
+		for(let j=0;j<player1.holster.length;j++){
+		
+		}
+		}
+	}
+}
+
+
+
+//detect key code from L/R arrow keys and adjust player coords
+function keyLogger(e) {
+	//console.log(e.keyCode);
+ 
+  if(e.keyCode == 37){player1.x-=playerMovement;}
+  if(e.keyCode == 39){player1.x += playerMovement;}
+  if(e.keyCode == 38){player1.shootLaser()};
+}
+
+//clear canvas before each animation frame
+function clearCanvas(){
+	ctx.clearRect(0,0,WIDTH, HEIGHT);
+}
+
+//testing function only
+function testMovePlayer(obj){
+	obj.x-=DX;
+	if(obj.x == WIDTH-obj.width || obj.x == 0){
+		DX*=-1;
+	}
+}
+
+//initialization 
+createEnemies(numEnemiesInitial);//3 enemies to begin
+setInterval('createEnemies(2)', 3000);
+console.log("initial enemies= "+enemies.arr);
+
+
+function mainLoop(){
+
+	clearCanvas();
+
+//	testMovePlayer(player1);
+	
+	draw(player1);
+	player1.drawLasers();
+	player1.moveLasers();
+
+	enemies.draw();
+	enemies.move();
+
+	collisionDetection(player1, enemies);
+
+	scoreP.value = SCORE;
+
+if(PLAY){
+	window.requestAnimationFrame(mainLoop);
+};
+	
+}
+
+
+document.addEventListener('keydown', keyLogger);
+// button to start game
+startBtn.addEventListener("click", mainLoop)
+//call mainLoop to start
+//mainLoop();
+
+</script>
+
+</body>
+</html>
