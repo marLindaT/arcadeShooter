@@ -56,7 +56,13 @@ let level = 1;
 let numEnemiesInitial = 3*level;
 let laserWidth = 2;
 let laserLength = 5;
-let laser_speed = 1;
+let laser_speed = 10;
+
+//controller properties
+let LEFT = false;
+let RIGHT = false;
+let SHOOT = false;
+
 
 //canvas properties
 const HEIGHT = 300;
@@ -122,9 +128,10 @@ function Player (width,height,color="blue"){
 //fn to add a new laser to array of lasers called the holster
 //update this array and repaint every animation frame
 	this.shootLaser = function(){
+		if(this.holster.length<10){
 		this.holster.push([(this.x+this.width/2),this.y]);
-	}
-
+		}
+		}
 //cycle through the array of lasers and paint each as a rect
 	this.drawLasers = function(){
 		if(this.holster.length !=0){
@@ -167,10 +174,6 @@ function draw(obj){
 	ctx.rect(obj.x, obj.y, obj.width, obj.height);
 	ctx.fill();
 }
-
-
-
-
 
 //enter player1 and enemies
 function collisionDetection(plyrObj, enmyObj){
@@ -216,14 +219,28 @@ function laserCollision(){
 }
 
 
-
 //detect key code from L/R arrow keys and adjust player coords
-function keyLogger(e) {
+function keyPressLogger(e) {
 	//console.log(e.keyCode);
  
-  if(e.keyCode == 37){player1.x-=playerMovement;}
-  if(e.keyCode == 39){player1.x += playerMovement;}
+  if(e.keyCode == 37){LEFT = true};
+  if(e.keyCode == 39){RIGHT = true};
   if(e.keyCode == 38){player1.shootLaser()};
+}
+function keyReleaseLogger(e) {
+	//console.log(e.keyCode);
+ 
+  if(e.keyCode == 37){LEFT = false};
+  if(e.keyCode == 39){RIGHT = false};
+ // if(e.keyCode == 38){SHOOT = false};
+}
+
+function controller(){
+  if(LEFT){player1.x-=playerMovement;}
+  if(RIGHT){player1.x += playerMovement;}
+ // if(SHOOT){player1.shootLaser()};
+
+
 }
 
 //clear canvas before each animation frame
@@ -246,6 +263,8 @@ console.log("initial enemies= "+enemies.arr);
 
 
 function mainLoop(){
+
+	controller();
 
 	clearCanvas();
 
@@ -271,7 +290,8 @@ if(PLAY){
 }
 
 
-document.addEventListener('keydown', keyLogger);
+document.addEventListener('keydown', keyPressLogger);
+document.addEventListener('keyup', keyReleaseLogger);
 // button to start game
 //startBtn.addEventListener("click", mainLoop)
 //call mainLoop to start
