@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> Arcade SHooter </title>
+
+	</head>
+	
+<style type="text/css">
+
+</style>
+	
+<body>
+
+<div id="container">
+
+
+	<canvas id='canvas'>canvas not supported</canvas>
+	<br>
+
+		<p>
+	<input id = "score-p" type = 'text'>
+		</p>
+
+
+</div>
+
+<script>
+
+let canvas = document.getElementById("canvas"); 
+let ctx = canvas.getContext("2d");
+
+let WIDTH = 300;
+let HEIGHT = 150;
+
+canvas.style.backgroundColor="black";
+canvas.style.width = WIDTH+'px';
+canvas.style.height = WIDTH+'px';
+
+let LEFT = false;
+let RIGHT = false;
+let SHOOT = false;
+
+
+let enemyArr =[];
+let lastEnemyTime = new Date();
+
+function random(min, max){
+	return Math.floor((Math.random()*(max-min))+min);
+}
+
+class Hero{
+	constructor(){
+		this.x = 150;
+		this.y = 135;
+		this.color = "blue";
+		this.width = 20;
+		this.height = 10;
+		this.speed = 3;
+		this.laserSpeed = 5;
+		this.laserArr = [];
+		this.playerArr = [];
+	}
+	drawHero(){
+		ctx.fillStyle = this.color;
+		ctx.fillRect(this.x, this.y, this.width, this.height);
+	}
+	updateHeroPosition(){
+		if(LEFT && this.x >0){this.x -= this.speed};
+		if(RIGHT && this.x<WIDTH-this.width){this.x += this.speed};
+	}
+	shootHeroLaser(){
+		if(SHOOT && this.laserArr.length<15){
+			this.laserArr.push([this.x, this.y]);
+		}
+	}
+	updateHeroLaser(){
+		for(let i=0; i<this.laserArr.length; i++){
+			this.laserArr[i][0]+5;
+			ctx.fillStyle = "green";
+			ctx.fillRect(this.laserArr[i][0], this.laserArr[i][1], 2, 5);
+		}
+	}
+
+}
+
+class Enemy{
+	constructor(){
+		this.x = random(10, WIDTH);
+		this.y = random(0, -25);
+		this.width = 15;
+		this.height = 7;
+		this.color="red";
+		this.speed = 0.5;
+
+	}
+}
+
+function createEnemies(num){
+	for(let i=0; i<num; i++){
+		let enemy = new Enemy();
+		enemyArr.push(enemy);
+	}
+}
+
+function moveAndDrawEnemies(arr){
+	for(let i=0; i<arr.length; i++){
+			
+		if(arr[i].x >arr[i].width && arr[i].x < WIDTH-arr[i].width){
+			arr[i].x+= random(-4,5);	
+		}else  if(arr[i].x <= arr[i].width){
+			arr[i].x+= random(5,15);
+		}else  if(arr[i].x >= WIDTH-arr[i].width){
+			arr[i].x-= random(5,15);
+		}
+
+		arr[i].y+= arr[i].speed;
+
+		ctx.fillStyle = "red";
+		ctx.fillRect(arr[i].x, arr[i].y, arr[i].width, arr[i].height);
+	}
+}
+
+function detectCollision(arr1, arr2){
+//detects collisions between two arrays
+//if collision detected splice out element from first array
+//use array of enemies for arr1 
+//use arr of player or laser for arr2
+	if(arr1.length>0 && arr2.length>0){
+		for(let i = 0; i<arr1.length; i++){
+		for(let j=0; j<arr2.length; j++){
+			if(arr1[i].x >= arr2[j].x && arr1[i].x+arr1[i].width <= arr2[j].x+arr2[j].width){
+			if(arr1[i].y>=arr2[j].y){
+				arr1.splice(i,1);
+			}
+			}
+		}
+		}
+	}
+}
+
+function keyPressLogger(e){
+	//console.log(e.keyCode);
+	if(e.keyCode == 38){SHOOT = true;}
+	if(e.keyCode == 37){LEFT = true;}
+	if(e.keyCode == 39){RIGHT = true;}
+}
+function keyReleaseLogger(e){
+	//console.log(e.keyCode);
+	if(e.keyCode == 38){SHOOT = false;}
+	if(e.keyCode == 37){LEFT = false;}
+	if(e.keyCode == 39){RIGHT = false;}
+}
+
+
+let player1 = new Hero();
+player1.playerArr.push(player1);
+createEnemies(random(2,10));
+
+function clear(){
+	ctx.clearRect(0,0,WIDTH, WIDTH);
+}
+
+document.addEventListener("keydown", keyPressLogger, false);
+document.addEventListener("keyup", keyReleaseLogger, false);
+
+function mainLoop(){
+
+//spawn new enemies
+let newEnemyTime = new Date();
+if(newEnemyTime - lastEnemyTime>1000){
+	createEnemies(2,8);
+	lastEnemyTime = new Date();
+}
+
+clear();
+
+player1.updateHeroPosition();
+player1.updateHeroLaser();
+player1.shootHeroLaser();
+
+player1.drawHero();
+
+moveAndDrawEnemies(enemyArr);
+
+detectCollision(enemyArr, player1.playerArr);
+
+requestAnimationFrame(mainLoop);
+}
+
+mainLoop();
+
+
+</script>
+
+</body>
+</html>
