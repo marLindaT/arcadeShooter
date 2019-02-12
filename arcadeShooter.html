@@ -58,6 +58,7 @@ class Hero{
 		this.speed = 3;
 		this.laserSpeed = 5;
 		this.laserArr = [];
+		this.laserArrLength = 10;
 		this.playerArr = [];
 	}
 	drawHero(){
@@ -69,15 +70,20 @@ class Hero{
 		if(RIGHT && this.x<WIDTH-this.width){this.x += this.speed};
 	}
 	shootHeroLaser(){
-		if(SHOOT && this.laserArr.length<15){
-			this.laserArr.push([this.x, this.y]);
+		if(SHOOT && this.laserArr.length < this.laserArrLength){
+			this.laserArr.push([this.x+(this.width/2), this.y]);
 		}
 	}
 	updateHeroLaser(){
 		for(let i=0; i<this.laserArr.length; i++){
-			this.laserArr[i][0]+5;
+			this.laserArr[i][1]-=this.laserSpeed;
+			
+			if(this.laserArr[i][1] <-10){
+				this.laserArr.splice(i,1);
+			}else{
 			ctx.fillStyle = "green";
 			ctx.fillRect(this.laserArr[i][0], this.laserArr[i][1], 2, 5);
+			}
 		}
 	}
 
@@ -115,12 +121,18 @@ function moveAndDrawEnemies(arr){
 
 		arr[i].y+= arr[i].speed;
 
+		if(arr[i].y > HEIGHT){
+			arr.slice(i,1);
+		}else{
 		ctx.fillStyle = "red";
 		ctx.fillRect(arr[i].x, arr[i].y, arr[i].width, arr[i].height);
+	}
+		
 	}
 }
 
 function detectCollision(arr1, arr2){
+//NEEDS SERIOUS WORK BOUNDARIES ARE BAD FOR ELEMENTS COLLIDING
 //detects collisions between two arrays
 //if collision detected splice out element from first array
 //use array of enemies for arr1 
@@ -165,26 +177,28 @@ document.addEventListener("keyup", keyReleaseLogger, false);
 
 function mainLoop(){
 
-//spawn new enemies
-let newEnemyTime = new Date();
-if(newEnemyTime - lastEnemyTime>1000){
-	createEnemies(2,8);
-	lastEnemyTime = new Date();
-}
+		//spawn new enemies
+		let newEnemyTime = new Date();
+		if(newEnemyTime - lastEnemyTime>1000){
+			createEnemies(2,8);
+			lastEnemyTime = new Date();
+		}
 
-clear();
+		clear();
 
-player1.updateHeroPosition();
-player1.updateHeroLaser();
-player1.shootHeroLaser();
+		player1.updateHeroPosition();
+		player1.updateHeroLaser();
+		player1.shootHeroLaser();
 
-player1.drawHero();
+		player1.drawHero();
 
-moveAndDrawEnemies(enemyArr);
+		moveAndDrawEnemies(enemyArr);
 
-detectCollision(enemyArr, player1.playerArr);
+		detectCollision(enemyArr, player1.playerArr);
 
-requestAnimationFrame(mainLoop);
+//		detectCollision(enemyArr, player1.laserArr);
+
+		requestAnimationFrame(mainLoop);
 }
 
 mainLoop();
