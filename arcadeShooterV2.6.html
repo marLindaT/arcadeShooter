@@ -6,6 +6,29 @@
 	</head>
 	
 <style type="text/css">
+*{
+	box-sizing: border-box;
+}
+
+.controlBtn{
+	border-radius: 3px;
+	width: 32%;
+	margin: 0;
+	padding: 5px;
+	height: 15vh;
+	background: green;
+	color: white;
+}
+.controlBtn:active{
+	border-radius: 3px;
+	width: 32%;
+	margin: 0;
+	padding: 5px;
+	height: 15vh;
+	background: red;
+
+}
+
 
 </style>
 	
@@ -17,9 +40,14 @@
 	<canvas id='canvas'>canvas not supported</canvas>
 	<br>
 
-		<p>
-	<input id = "score-p" type = 'text'>
-		</p>
+<div id="controlBtnCluster">
+
+	<button id = "leftBtn" class="controlBtn">LEFT</button>
+	<button id = "rightBtn" class="controlBtn">RIGHT</button>
+	<button id = "shootBtn" class="controlBtn">SHOOT</button>
+
+</div>
+		
 
 
 </div>
@@ -32,6 +60,15 @@ let ctx = canvas.getContext("2d");
 let WIDTH = 300;
 let HEIGHT = 150;
 
+let controlBtnCluster = document.getElementById("controlBtnCluster");
+controlBtnCluster.style.width = WIDTH+"px";
+
+let leftBtn = document.getElementById("leftBtn");
+let rightBtn = document.getElementById("rightBtn");
+let shootBtn = document.getElementById("shootBtn");
+
+
+
 canvas.style.backgroundColor="black";
 canvas.style.width = WIDTH+'px';
 canvas.style.height = WIDTH+'px';
@@ -40,9 +77,11 @@ let LEFT = false;
 let RIGHT = false;
 let SHOOT = false;
 
+
 let PLAY = true;
 let level = 1;
-
+let lives = 3;
+let score = 0;
 
 let enemyArr =[];
 let lastEnemyTime = new Date();
@@ -181,6 +220,13 @@ let player1 = new Hero();
 player1.playerArr.push(player1);
 createEnemies(random(2,10));
 
+
+function writeText(text, x,y){
+	ctx.font = "10px Arial";
+	ctx.fillStyle = "white";
+	ctx.fillText(text, x, y );
+}
+
 function clear(){
 	ctx.clearRect(0,0,WIDTH, WIDTH);
 }
@@ -188,9 +234,23 @@ function clear(){
 document.addEventListener("keydown", keyPressLogger, false);
 document.addEventListener("keyup", keyReleaseLogger, false);
 
+
+
+leftBtn.addEventListener("touchstart", function(){LEFT=true}, false);
+leftBtn.addEventListener("touchend", function(){LEFT=false}, false);
+
+rightBtn.addEventListener("touchstart", function(){RIGHT=true}, false);
+rightBtn.addEventListener("touchend", function(){RIGHT=false}, false);
+
+shootBtn.addEventListener("touchstart", function(){SHOOT=true}, false);
+shootBtn.addEventListener("touchend", function(){SHOOT=false}, false);
+
 function mainLoop(){
 	if(PLAY){
 
+		clear();
+
+		writeText(`SCORE=${score}`, 5, 15);
 
 		//spawn new enemies
 		let newEnemyTime = new Date();
@@ -199,7 +259,7 @@ function mainLoop(){
 			lastEnemyTime = new Date();
 		}
 
-		clear();
+		
 
 		player1.updateHeroPosition();
 		player1.updateHeroLaser();
