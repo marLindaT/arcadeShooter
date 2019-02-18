@@ -10,6 +10,14 @@
 	box-sizing: border-box;
 }
 
+.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
 .controlBtn{
 	border-radius: 3px;
 	width: 32%;
@@ -26,6 +34,10 @@
 	padding: 5px;
 	height: 15vh;
 	background: red;
+}
+#startBtn{
+	background: yellow;
+	color: purple;
 
 }
 
@@ -42,13 +54,13 @@
 
 <div id="controlBtnCluster">
 
-	<button id = "leftBtn" class="controlBtn">LEFT</button>
-	<button id = "rightBtn" class="controlBtn">RIGHT</button>
-	<button id = "shootBtn" class="controlBtn">SHOOT</button>
+	<button id = "leftBtn" class="controlBtn controlBtn">LEFT</button>
+	<button id = "rightBtn" class="controlBtn controlBtn">RIGHT</button>
+	<button id = "shootBtn" class="controlBtn controlBtn">SHOOT</button>
 
 </div>
-		
 
+<button id="startBtn" class="controlBtn controlBtn">START/PAUSE</button>
 
 </div>
 
@@ -66,8 +78,9 @@ controlBtnCluster.style.width = WIDTH+"px";
 let leftBtn = document.getElementById("leftBtn");
 let rightBtn = document.getElementById("rightBtn");
 let shootBtn = document.getElementById("shootBtn");
+let startBtn = document.getElementById("startBtn");
 
-
+startBtn.style.width = WIDTH+"px";
 
 canvas.style.backgroundColor="black";
 canvas.style.width = WIDTH+'px';
@@ -78,10 +91,11 @@ let RIGHT = false;
 let SHOOT = false;
 
 
-let PLAY = true;
+let PLAY = false;
 let level = 1;
-let lives = 3;
+let lives = 15;
 let score = 0;
+let enemiesDestroyed =0;
 
 let enemyArr =[];
 let lastEnemyTime = new Date();
@@ -98,7 +112,7 @@ class Hero{
 		this.width = 20;
 		this.height = 10;
 		this.speed = 3;
-		this.laserSpeed = 5;
+		this.laserSpeed = 7;
 		this.laserArr = [];
 		this.laserArrLength = 1;
 		this.playerArr = [];
@@ -173,7 +187,7 @@ function moveAndDrawEnemies(arr){
 		arr[i].y+= arr[i].speed;
 
 		if(arr[i].y > HEIGHT){
-			arr.slice(i,1);
+			arr.splice(i,1);
 		}else{
 		ctx.fillStyle = "red";
 		ctx.fillRect(arr[i].x, arr[i].y, arr[i].width, arr[i].height);
@@ -196,6 +210,19 @@ if(arr1.length>0 && arr2.length>0){
 		{
 
 			arr1.splice(i,1);
+//sloppy to increment score and lives for collisions
+			if(arr1 == enemyArr && arr2 == player1.playerArr){
+				lives -=1;
+			}
+			if(arr1 == enemyArr && arr2 == player1.laserArr){
+				score += 100;
+				enemiesDestroyed +=1;
+			}
+// detectCollision(enemyArr, player1.playerArr);
+
+// 		detectCollision(enemyArr, player1.laserArr);
+
+
 		}
 	}
 	}
@@ -227,9 +254,26 @@ function writeText(text, x,y){
 	ctx.fillText(text, x, y );
 }
 
+function toggleStart(){
+	if(PLAY == true){
+		PLAY = false;
+	}else if (PLAY == false){
+		PLAY = true;
+		mainLoop();
+	}
+};
+
+function gameOver(){
+	alert("You Lost");
+	return confirm("Would you like to play again?")
+}
+
+
 function clear(){
 	ctx.clearRect(0,0,WIDTH, WIDTH);
 }
+
+startBtn.addEventListener("click", toggleStart, false);
 
 document.addEventListener("keydown", keyPressLogger, false);
 document.addEventListener("keyup", keyReleaseLogger, false);
@@ -249,8 +293,11 @@ function mainLoop(){
 	if(PLAY){
 
 		clear();
-
-		writeText(`SCORE=${score}`, 5, 15);
+//display score lives and kills on canvas
+		writeText(`SCORE:${score}`, 5, 15);
+		writeText(`LIVES:${lives}`, 5, 25);
+		writeText(`KILLS:${enemiesDestroyed}`,5, 35);
+		writeText(`LEVEL:${level}`,250, 15);
 
 		//spawn new enemies
 		let newEnemyTime = new Date();
@@ -272,6 +319,47 @@ function mainLoop(){
 		detectCollision(enemyArr, player1.playerArr);
 
 		detectCollision(enemyArr, player1.laserArr);
+
+//adjust lives with score
+		if(score ==2500){
+			score-=2500;
+			lives+=1;
+			
+		}
+//adjust level with KIA
+		if(enemiesDestroyed >10 &&enemiesDestroyed<20){
+			level = 2;
+		}else if(enemiesDestroyed >30 &&enemiesDestroyed<40){
+			level = 3;
+		}else if(enemiesDestroyed >40 &&enemiesDestroyed<50){
+			level = 4;
+		}else if(enemiesDestroyed >50 &&enemiesDestroyed<60){
+			level = 5;
+		}else if(enemiesDestroyed >60 &&enemiesDestroyed<70){
+			level = 6;
+		}else if(enemiesDestroyed >70 &&enemiesDestroyed<80){
+			level = 7;
+		}else if(enemiesDestroyed >80 &&enemiesDestroyed<90){
+			level = 8;
+		}else if(enemiesDestroyed >90 &&enemiesDestroyed<100){
+			level = 9;
+		}else if(enemiesDestroyed >100 &&enemiesDestroyed<200){
+			level = 10;
+		}			
+//end of game condition and handling
+//error here...enemy speed not slowing on new game
+//some games may not reload....
+		if(lives<0){
+			PLAY = false;
+			if(gameOver()){
+				level = 0;
+				lives =15;
+				score = 0;
+				PLAY = true;
+				
+				mainLoop();
+			}
+		}
 
 		requestAnimationFrame(mainLoop);
 }
